@@ -15,13 +15,20 @@
 
     </FrameLayout>
 
-    <com.termux.shared.terminal.io.extrakeys.ExtraKeysView
-	xmlns:android="http://schemas.android.com/apk/res/android"
-        style="?android:attr/buttonBarStyle"
-        android:orientation="horizontal"
-	android:id="@+id/additionalKbd"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-	android:layout_gravity="bottom|center" />
+
+    <FrameLayout
+    	android:layout_width="match_parent"
+   	android:layout_height="wrap_content">
+
+    	<com.termux.shared.terminal.io.extrakeys.ExtraKeysView
+	    xmlns:android="http://schemas.android.com/apk/res/android"
+            style="?android:attr/buttonBarStyle"
+            android:orientation="horizontal"
+	    android:id="@+id/additionalKbd"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+	    android:layout_gravity="bottom|center" />
+
+    </FrameLayout>
 
 </FrameLayout>
