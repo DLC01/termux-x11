@@ -3,10 +3,13 @@ package com.termux.x11;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
+
 import android.os.Bundle;
+import android.os.Build;
+
 import android.view.KeyEvent;
 import android.view.PointerIcon;
 import android.view.SurfaceView;
@@ -14,19 +17,26 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
+
 import android.widget.Toast;
 import android.widget.FrameLayout;
+
 import com.termux.shared.terminal.io.extrakeys.ExtraKeysView;
+
 import com.termux.x11.TermuxAppSharedProperties;
 import com.termux.x11.TerminalExtraKeys;
+import com.termux.x11.TerminalToolbarViewPager;
 
 public class MainActivity extends AppCompatActivity {
 
     private TermuxAppSharedProperties mProperties;
+    private int mTerminalToolbarDefaultHeight;
 
-    ExtraKeysView kbd;
     FrameLayout frm;
     @Override
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -42,21 +52,25 @@ public class MainActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main_activity);
 
-        kbd = findViewById(R.id.additionalKbd);
 	frm = findViewById(R.id.frame);
+
+	setTerminalToolbarView();
+	toggleTerminalToolbar();
+
+	frm.setPadding(0,0,0,this.getTerminalToolbarViewPager().getHeight());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             getWindow().
              getDecorView().
               setPointerIcon(PointerIcon.getSystemIcon(this, PointerIcon.TYPE_NULL));
-	}
+    }
 
     int orientation;
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        if (newConfig.orientation != orientation && kbd != null && kbd.getVisibility() == View.VISIBLE) {
+        if (newConfig.orientation != orientation && this.getTerminalToolbarViewPager() != null && this.getTerminalToolbarViewPager().getVisibility() == View.VISIBLE) {
             InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
             View view = getCurrentFocus();
             if (view == null) {
@@ -68,13 +82,60 @@ public class MainActivity extends AppCompatActivity {
         orientation = newConfig.orientation;
     }
 
+    public TermuxAppSharedProperties getProperties() {
+        return mProperties;
+    }
+
     public void onLorieServiceStart(LorieService instance) {
+        instance.setListeners(this.getlorieView());
+	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+	if (preferences.getBoolean("Toolbar", true)) {
+    	    frm.setPadding(0,0,0,this.getTerminalToolbarViewPager().getHeight());
+	}
+    }
+
+    public SurfaceView getlorieView() {
         SurfaceView lorieView = findViewById(R.id.lorieView);
+	return lorieView;
+    }
 
-        instance.setListeners(lorieView);
-	kbd.reload(mProperties.getExtraKeysInfo());
-	kbd.setExtraKeysViewClient(new TerminalExtraKeys(LorieService.getOnKeyListener(), this));
+    public ViewPager getTerminalToolbarViewPager() {
+        return (ViewPager) findViewById(R.id.terminal_toolbar_view_pager);
+    }
 
+    private void setTerminalToolbarView() {
+        final ViewPager terminalToolbarViewPager = getTerminalToolbarViewPager();
+
+        ViewGroup.LayoutParams layoutParams = terminalToolbarViewPager.getLayoutParams();
+        mTerminalToolbarDefaultHeight = layoutParams.height;
+
+        setLorieToolbarHeight();
+
+        terminalToolbarViewPager.setAdapter(new TerminalToolbarViewPager.PageAdapter(this, LorieService.getOnKeyListener()));
+        terminalToolbarViewPager.addOnPageChangeListener(new TerminalToolbarViewPager.OnPageChangeListener(this, terminalToolbarViewPager));
+    }
+
+    private void setLorieToolbarHeight() {
+        final ViewPager terminalToolbarViewPager = getTerminalToolbarViewPager();
+        if (terminalToolbarViewPager == null) return;
+
+        ViewGroup.LayoutParams layoutParams = terminalToolbarViewPager.getLayoutParams();
+        layoutParams.height = (int) Math.round(mTerminalToolbarDefaultHeight *
+            (mProperties.getExtraKeysInfo() == null ? 0 : mProperties.getExtraKeysInfo().getMatrix().length) *
+            mProperties.getTerminalToolbarHeightScaleFactor());
+        terminalToolbarViewPager.setLayoutParams(layoutParams);
+    }
+
+
+    public void toggleTerminalToolbar() {
+        final ViewPager terminalToolbarViewPager = getTerminalToolbarViewPager();
+        if (terminalToolbarViewPager == null) return;
+
+	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean showNow = preferences.getBoolean("Toolbar", true);
+
+        terminalToolbarViewPager.setVisibility(showNow ? View.VISIBLE : View.GONE);
+        findViewById(R.id.terminal_toolbar_view_pager).requestFocus();
     }
 
     @Override
@@ -107,17 +168,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPictureInPictureModeChanged (boolean isInPictureInPictureMode, Configuration newConfig) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 	if (isInPictureInPictureMode) {
-	    if (kbd.getVisibility() != View.GONE)
-                kbd.setVisibility(View.GONE);
+	    if (this.getTerminalToolbarViewPager().getVisibility() != View.GONE)
+                this.getTerminalToolbarViewPager().setVisibility(View.GONE);
 		frm.setPadding(0,0,0,0);
 	    return;
 	} else {
-	    if (kbd.getVisibility() != View.VISIBLE)
-                kbd.setVisibility(View.VISIBLE);
-		frm.setPadding(0,0,0,kbd.getHeight());
+	    if (this.getTerminalToolbarViewPager().getVisibility() != View.VISIBLE)
+                this.getTerminalToolbarViewPager().setVisibility(View.VISIBLE);
+		frm.setPadding(0,0,0,this.getTerminalToolbarViewPager().getHeight());
 	    return;
 	}
     }
