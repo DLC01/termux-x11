@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private TermuxAppSharedProperties mProperties;
     private int mTerminalToolbarDefaultHeight;
 
+    ExtraKeysView mExtraKeysView;
     FrameLayout frm;
     @Override
 
@@ -56,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
 	setTerminalToolbarView();
 	toggleTerminalToolbar();
-
-	frm.setPadding(0,0,0,this.getTerminalToolbarViewPager().getHeight());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             getWindow().
@@ -86,12 +85,17 @@ public class MainActivity extends AppCompatActivity {
         return mProperties;
     }
 
+    public ExtraKeysView getExtraKeysView() {
+        return mExtraKeysView;
+    }
+
+    public void setExtraKeysView(ExtraKeysView extraKeysView) {
+        mExtraKeysView = extraKeysView;
+    }
+
     public void onLorieServiceStart(LorieService instance) {
         instance.setListeners(this.getlorieView());
 	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-	if (preferences.getBoolean("Toolbar", true)) {
-    	    frm.setPadding(0,0,0,this.getTerminalToolbarViewPager().getHeight());
-	}
     }
 
     public SurfaceView getlorieView() {
@@ -177,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
 	} else {
 	    if (this.getTerminalToolbarViewPager().getVisibility() != View.VISIBLE)
                 this.getTerminalToolbarViewPager().setVisibility(View.VISIBLE);
-		frm.setPadding(0,0,0,this.getTerminalToolbarViewPager().getHeight());
 	    return;
 	}
     }

@@ -185,7 +185,7 @@ public class LorieService extends Service {
         }
 
         onPreferencesChanged();
-
+	act.frm.setPadding(0,0,0,act.getTerminalToolbarViewPager().getHeight());
         return START_REDELIVER_INTENT;
     }
 

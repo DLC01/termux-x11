@@ -59,7 +59,7 @@ public class TerminalExtraKeys implements ExtraKeysView.IExtraKeysView {
                 } else if (SpecialButton.FN.getKey().equals(key)) {
                     fnDown = true;
                 } else {
-                    onTerminalExtraKeyButtonClick(view, key, ctrlDown, altDown, shiftDown, fnDown);
+                    onLorieExtraKeyButtonClick(view, key, ctrlDown, altDown, shiftDown, fnDown);
                     ctrlDown = false;
 		    altDown = false;
 		    shiftDown = false;
@@ -81,9 +81,8 @@ public class TerminalExtraKeys implements ExtraKeysView.IExtraKeysView {
             if (shiftDown) metaState |= KeyEvent.META_SHIFT_ON | KeyEvent.META_SHIFT_LEFT_ON;
             if (fnDown) metaState |= KeyEvent.META_FUNCTION_ON;
 
-            KeyEvent keyEvent = new KeyEvent(0, 0, KeyEvent.ACTION_UP, keyCode, 0, metaState);
-	    mEventListener.onKey(act.getlorieView(), keyCode, keyEvent);
-
+	    onControlCharused(act.getlorieView(), keyCode, new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, keyCode, 0, metaState), ctrlDown, fnDown, shiftDown, altDown);
+	    onControlCharused(act.getlorieView(), keyCode, new KeyEvent(0, 0, KeyEvent.ACTION_UP, keyCode, 0, metaState), ctrlDown, fnDown, shiftDown, altDown);
         } else {
             // not a control char
             key.codePoints().forEach(codePoint -> {
@@ -127,7 +126,7 @@ public class TerminalExtraKeys implements ExtraKeysView.IExtraKeysView {
 	} else if ("DRAWER".equals(key)) {
 	    Intent preferencesIntent = new Intent(act, LoriePreferences.class);
             preferencesIntent.setAction(ACTION_START_PREFERENCES_ACTIVITY);
-	    startActivity(preferencesIntent);
+	    act.startActivity(preferencesIntent);
 
         } else if ("PASTE".equals(key)) {
 
@@ -144,4 +143,24 @@ public class TerminalExtraKeys implements ExtraKeysView.IExtraKeysView {
         }
     }
 
+    public void onControlCharused(View mview, int keyCode, KeyEvent e, boolean cd, boolean fnd, boolean sd, boolean altd) {
+
+        mEventListener.onKey(mview, keyCode, e);
+	if (cd = true) {
+	    readExtraKeysSpecialButton(SpecialButton.CTRL);
+	}
+	if (fnd = true) {
+	    readExtraKeysSpecialButton(SpecialButton.FN);
+	}
+	if (sd = true) {
+	    readExtraKeysSpecialButton(SpecialButton.SHIFT);
+	}
+	if (altd = true) {
+	    readExtraKeysSpecialButton(SpecialButton.ALT);
+	}
+    }
+
+    public void readExtraKeysSpecialButton(SpecialButton specialButton) {
+        Boolean state = act.getExtraKeysView().readSpecialButton(specialButton, true);
+    }
 }
