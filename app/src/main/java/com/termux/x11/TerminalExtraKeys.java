@@ -81,6 +81,7 @@ public class TerminalExtraKeys implements ExtraKeysView.IExtraKeysView {
             if (shiftDown) metaState |= KeyEvent.META_SHIFT_ON | KeyEvent.META_SHIFT_LEFT_ON;
             if (fnDown) metaState |= KeyEvent.META_FUNCTION_ON;
 
+	    onControlCharused(act.getlorieView(), keyCode, new KeyEvent(0, 0, KeyEvent.ACTION_DOWN, keyCode, 0, metaState), ctrlDown, fnDown, shiftDown, altDown);
 	    onControlCharused(act.getlorieView(), keyCode, new KeyEvent(0, 0, KeyEvent.ACTION_UP, keyCode, 0, metaState), ctrlDown, fnDown, shiftDown, altDown);
         } else {
             // not a control char
